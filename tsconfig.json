@@ -3,6 +3,7 @@
   "include": ["src", "types"],
   "exclude": ["node_modules"],
   "compilerOptions": {
+    "target": "ES2018",
     // LitElement makes use of experimental decorator syntax.
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
