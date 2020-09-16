@@ -21,13 +21,13 @@ export class Circle extends Shape {
 
     protected _outline(): void {
         this._ctx.beginPath();
-        this._ctx.strokeStyle = 'lime';
         const x = this.x + Circle._offsetX;
         const y = this.y + Circle._offsetY;
-        this._ctx.strokeStyle = 'lime' //this.color;
-        this._ctx.arc(x, y, this.#radius + 4, 0, Math.PI * 2, true);
-        this._ctx.stroke();
+        this._ctx.arc(x, y, this.#radius + Shape.hoverOutline.size, 0, Math.PI * 2, true);
         this._ctx.closePath();
+        this._ctx.fillStyle = Shape.hoverOutline.color;
+        this._ctx.fill();
+        this._draw();
     }
 
     protected _isMouseOver(x: number, y: number, boundingRect: DOMRect): boolean {

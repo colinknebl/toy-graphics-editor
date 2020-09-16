@@ -6,6 +6,11 @@ export enum ShapeType {
 }
 
 export abstract class Shape {
+    public static hoverOutline = {
+        size: 6,
+        color: 'rgba(0, 0, 0, 0.3)'
+    };
+
     private static _nextId = 0;
     private static _getId(): number {
         const id = Date.now() + Shape._nextId;
@@ -23,6 +28,7 @@ export abstract class Shape {
     #draggingEvent?: DraggingEvent;
     #isSelected: boolean = false;
     #isHoveredOver: boolean = false;
+    #isHoverOutlineApplied: boolean = false;
 
     constructor(CanvasType: typeof Canvas, options?: Shape.Options) {
         this.#Canvas = CanvasType;
@@ -60,6 +66,7 @@ export abstract class Shape {
 
     public unhover(): void {
         this.#isHoveredOver = false;
+        this.#isHoverOutlineApplied = false;
         this.#Canvas.redraw();
     }
 
@@ -89,7 +96,9 @@ export abstract class Shape {
 
     protected abstract _outline(): void;
     public outline(): void {
+        if (this.#isHoverOutlineApplied) return;
         this._outline();
+        this.#isHoverOutlineApplied = true;
     }
 
     public get Canvas(): typeof Canvas {

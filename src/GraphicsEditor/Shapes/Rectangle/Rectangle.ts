@@ -8,8 +8,10 @@ export class Rectangle extends Shape {
     }
 
     protected _outline(): void {
-        this._ctx.strokeStyle = 'lime';
-        this._ctx.strokeRect(this.x - 4, this.y - 4, this.height + 8, this.width + 8);
+        const size = Shape.hoverOutline.size;
+        this._ctx.fillStyle = Shape.hoverOutline.color;
+        this._ctx.fillRect(this.x - size, this.y - size, this.height + size * 2, this.width + size * 2);
+        this._draw();
     }
 
     protected _isMouseOver(x: number, y: number, boundingRect: DOMRect) {
