@@ -7,14 +7,19 @@ export class Rectangle extends Shape {
         super(CanvasType, {height: 100, width: 100});
     }
 
-    protected _outline(): void {
-        const size = Shape.hoverOutline.size;
-        this._ctx.fillStyle = Shape.hoverOutline.color;
+    protected _hover(): void {
+        const size = Shape.outline.hover.size;
+        this._ctx.fillStyle = Shape.outline.hover.color;
         this._ctx.fillRect(this.x - size, this.y - size, this.height + size * 2, this.width + size * 2);
         this._draw();
     }
 
-    protected _isMouseOver(x: number, y: number, boundingRect: DOMRect) {
+    protected _select(): void {
+        const size = Shape.outline.hover.size;
+        this._ctx.strokeRect(this.x - size, this.y - size, this.height + size * 2, this.width + size * 2);
+    }
+
+    protected _isPointOver(x: number, y: number, boundingRect: DOMRect) {
         const canvasPosition = boundingRect;
         const shapeLeftEdge = this.x + canvasPosition.left;
         const shapeRightEdge = this.x + canvasPosition.left + this.width;

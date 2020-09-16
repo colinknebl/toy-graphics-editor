@@ -19,18 +19,27 @@ export class Circle extends Shape {
         return this.#radius * 2;
     }
 
-    protected _outline(): void {
+    protected _hover(): void {
         this._ctx.beginPath();
         const x = this.x + Circle._offsetX;
         const y = this.y + Circle._offsetY;
-        this._ctx.arc(x, y, this.#radius + Shape.hoverOutline.size, 0, Math.PI * 2, true);
+        this._ctx.arc(x, y, this.#radius + Shape.outline.hover.size, 0, Math.PI * 2, true);
         this._ctx.closePath();
-        this._ctx.fillStyle = Shape.hoverOutline.color;
+        this._ctx.fillStyle = Shape.outline.hover.color;
         this._ctx.fill();
         this._draw();
     }
 
-    protected _isMouseOver(x: number, y: number, boundingRect: DOMRect): boolean {
+    protected _select(): void {
+        this._ctx.beginPath();
+        const x = this.x + Circle._offsetX;
+        const y = this.y + Circle._offsetY;
+        this._ctx.arc(x, y, this.#radius + (Shape.outline.select.size * 2), 0, Math.PI * 2, true);
+        this._ctx.stroke();
+        this._ctx.closePath();
+    }
+
+    protected _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean {
         const canvasPosition = boundingRect;
 
         const position = { 

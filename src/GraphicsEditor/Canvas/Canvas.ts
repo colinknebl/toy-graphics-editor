@@ -52,7 +52,7 @@ export class Canvas {
     private static _instance?: Canvas;
     #el!: HTMLCanvasElement;
     #shapeEntries: Map<number, Shape> = new Map();
-    #isDragging: boolean = false;
+    #isMouseDown: boolean = false;
 
     public constructor(element?: HTMLCanvasElement) {      
         if (Canvas._instance) {
@@ -66,44 +66,63 @@ export class Canvas {
         this.#el = element;
         this.#el.addEventListener('mousemove', this._onMouseMove);
         this.#el.addEventListener('mousedown', this._onMouseDown);
-        this.#el.addEventListener('mouseup', this._onMouseUp);
-        
+        this.#el.addEventListener('mouseup', this._onMouseUp);   
     }
 
     private _onMouseUp = (event: MouseEvent): void => {
-        
-        this.#isDragging = false;
+        this.#isMouseDown = false;
 
-        Array.from(this.#shapeEntries.values()).reverse().map(shape => {
+        this._shapesArray.reverse().map(shape => {
             shape.endDrag();
         });
     }
 
+    private _isPointOverShape(x: number, y: number): boolean {
+        return this._shapesArray.some(shape => shape.isPointOver(x, y));
+    }
+
+    private _unselectAllShapes(): void {
+        this._shapesArray.forEach(shape => shape.unselect());
+    }
+
+    private get _shapesArray(): Shape[] {
+        return Array.from(this.#shapeEntries.values());
+    }
+
     private _onMouseDown = (event: MouseEvent): void => {
-        Array.from(this.#shapeEntries.values()).reverse().map(shape => {
-            if (!this.#isDragging && shape.isMouseOver(event.clientX, event.clientY)) {                
-                shape.isSelected = true;
-                shape.initDrag(event);
-                this.#isDragging = true;
+        this.#isMouseDown = true;
+    
+        const isPointOverShape = this._isPointOverShape(event.clientX, event.clientY);
+
+        if (!isPointOverShape) 
+            return this._unselectAllShapes();
+
+        this._shapesArray.reverse().map(shape => {
+
+            if (shape.isPointOver(event.clientX, event.clientY)) {
+                shape.select();
+            } else if (event.shiftKey &&  shape.isSelected) {
+                shape.select();
+            } else {
+                shape.unselect();
             }
-        })
+        });
     }
 
     private _onMouseMove = (event: MouseEvent): void => {
-        let oneIsHovered = false;
-        Array.from(this.#shapeEntries.values()).reverse().map(shape => {
-
-            if (shape.isDragging) {
-                return shape.handleMoveEvent(event);
-            }
-
-            if (!this.#isDragging && !oneIsHovered && shape.isMouseOver(event.clientX, event.clientY)) {
-                shape.hover();
-                oneIsHovered = true;
+        this._shapesArray.reverse().map(shape => {
+                
+            // if the mouse is over the shape, hover
+            if (shape.isPointOver(event.clientX, event.clientY)) {
+                    shape.hover();
             } else {
                 shape.unhover();
             }
             
+            // if the mouse is selected, handleMouseMoveEvent
+            if (this.#isMouseDown && shape.isSelected) {
+                shape.handleMoveEvent(event);
+            }
         });
     }
 

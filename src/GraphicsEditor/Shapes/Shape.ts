@@ -6,9 +6,15 @@ export enum ShapeType {
 }
 
 export abstract class Shape {
-    public static hoverOutline = {
-        size: 6,
-        color: 'rgba(0, 0, 0, 0.3)'
+    public static outline = {
+        hover: {
+            size: 6,
+            color: 'rgba(24, 117, 255, 0.55)'
+        },
+        select: {
+            size: 3,
+            color: 'gold'
+        }
     };
 
     private static _nextId = 0;
@@ -55,27 +61,16 @@ export abstract class Shape {
         return this.#isHoveredOver;
     }
 
-    public set isSelected(selected: boolean) {
-        this.#isSelected = selected;
-    }
-
-    public hover(): void {
-        this.#isHoveredOver = true;
-        this.outline();
-    }
-
-    public unhover(): void {
-        this.#isHoveredOver = false;
-        this.#isHoverOutlineApplied = false;
-        this.#Canvas.redraw();
-    }
-
     protected abstract _draw(): Shape;
     public draw(): Shape {
         this._draw();
 
         if (this.isHoveredOver) {
-            this._outline();
+            this._hover();
+        }
+
+        if (this.#isSelected) {
+            this.select();
         }
 
         return this;
@@ -87,31 +82,54 @@ export abstract class Shape {
     }
 
     public handleMoveEvent(event: MouseEvent): void {
-        this.#draggingEvent?.setLastEvent(event);
+        if (!this.#draggingEvent) {
+            this.#draggingEvent = new DraggingEvent(event, this, this.#Canvas);
+            return;
+        } else {
+            this.#draggingEvent.setLastEvent(event);
+        }
 
-        this.#x = this.#draggingEvent?.nextPosition?.x ?? 0;
-        this.#y = this.#draggingEvent?.nextPosition?.y ?? 0;
+        this.#x = this.#draggingEvent?.nextPosition?.x as number;
+        this.#y = this.#draggingEvent?.nextPosition?.y as number;
         this.#Canvas.moveShape(this);
-    }
-
-    protected abstract _outline(): void;
-    public outline(): void {
-        if (this.#isHoverOutlineApplied) return;
-        this._outline();
-        this.#isHoverOutlineApplied = true;
     }
 
     public get Canvas(): typeof Canvas {
         return this.#Canvas;
     }
 
-    protected abstract _isMouseOver(x: number, y: number, boundingRect: DOMRect): boolean;
-    public isMouseOver(x: number, y: number): boolean {
-        return this._isMouseOver(x, y, this.#Canvas.getBoundingClientRect());;
+    protected abstract _hover(): void;
+    public hover(): void {
+        this.#isHoveredOver = true;
+        if (this.#isHoverOutlineApplied) return;
+        this._ctx.lineWidth = Shape.outline.hover.size;
+        this._ctx.strokeStyle = Shape.outline.hover.color;
+        this._hover();
+        this.#isHoverOutlineApplied = true;
     }
 
-    public initDrag(event: MouseEvent): void {
-        this.#draggingEvent = new DraggingEvent(event, this, this.#Canvas);
+    public unhover(): void {
+        this.#isHoveredOver = false;
+        this.#isHoverOutlineApplied = false;
+        this.#Canvas.redraw();
+    }
+
+    protected abstract _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean;
+    public isPointOver(x: number, y: number): boolean {
+        return this._isPointOver(x, y, this.#Canvas.getBoundingClientRect());;
+    }
+
+    protected abstract _select(): void;
+    public select(): void {
+        this.#isSelected = true;
+        this._ctx.lineWidth = Shape.outline.select.size;
+        this._ctx.strokeStyle = Shape.outline.select.color;
+        this._select();
+    }
+
+    public unselect(): void {
+        this.#isSelected = false;
+        this.#Canvas.redraw();
     }
 
     public endDrag(): void {
@@ -176,6 +194,8 @@ class DraggingEvent {
 
     constructor(initialEvent: MouseEvent, shape: Shape, CanvasType: typeof Canvas) {
         this.#initialEvent = initialEvent;
+        this.lastMousePosition = new Position(initialEvent.clientX, initialEvent.clientY);
+
         this.#shape = shape;
         const {top, left} = CanvasType.getBoundingClientRect();
         this.canvasDimensions = {top, left}
