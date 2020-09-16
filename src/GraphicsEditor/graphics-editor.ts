@@ -30,7 +30,9 @@ export class CanvasElement extends LitElement {
                 background: whitesmoke;
                 border-radius: 5px;
                 padding: var(--spacing);
-                display: flex;
+                display: grid;
+                grid-template-columns: repeat(3, max-content);
+                gap: var(--spacing);
             }
 
             .graphics-editor__add-shapes-controls {
@@ -38,8 +40,8 @@ export class CanvasElement extends LitElement {
                 flex-direction: column;
             }
 
-            canvas {
-                margin-left: var(--spacing);
+            .canvas-container {
+                border: 3px solid #333;
             }
         `;
     }
@@ -60,7 +62,60 @@ export class CanvasElement extends LitElement {
                     <button @click="${this._onAddCircle}">Add Circle</button>
                     <button @click="${this._onAddRectangle}">Add Rectangle</button>
                 </div>
-                <canvas height="500" width="500"></canvas>
+                <div class="canvas-container">
+                    <canvas height="500" width="500"></canvas>
+                </div>
+                <shape-editor .shape="${{foo: 'bar'}}"></shape-editor>
+            </div>
+        `;
+      }
+}
+
+@customElement('shape-editor')
+class ShapeEditor extends LitElement {
+    @property()
+    public shape?: {foo: string};
+
+    public static get styles() {
+        return css`
+            .shape-editor {
+                color: #333;
+                font-size: 1rem;
+                font-family: monospace;
+
+                width: 300px;
+                display: grid;
+                grid-template-areas:
+                    "delete-button shape-type"
+                    "shape-attributes shape-attributes"
+                ;
+            }
+
+            .delete-button {
+                grid-area: delete-button;
+            }
+
+            .shape-type {
+                text-align: center;
+                margin: 0;
+                padding: 5px;
+                grid-area: shape-type;
+            }
+
+            .shape-attributes {
+                grid-area: shape-attributes;
+            }
+        `;
+    }
+
+    public render() {
+        return html`
+            <div class="shape-editor">
+                <button class="delete-button">Delete</button>
+                <p class="shape-type">ShapeType<p>
+                <div class="shape-attributes">
+                    attributes...
+                </div>
             </div>
         `;
       }
