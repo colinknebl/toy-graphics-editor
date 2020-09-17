@@ -1,5 +1,7 @@
 import { customElement, property, LitElement, html, css, TemplateResult } from 'lit-element';
 import { Canvas } from './Canvas/Canvas';
+import { Circle } from './Shapes/Circle/Circle';
+import { Rectangle } from './Shapes/Rectangle/Rectangle';
 import { Shape, ShapeType } from './Shapes/Shape';
 
 @customElement('graphics-editor')
@@ -109,6 +111,14 @@ class ShapeEditor extends LitElement {
                 margin: 0;
                 padding: 5px;
             }
+
+            input:read-only {
+                border: none;
+                background: inherit;
+                text-align: center;
+                font-family: inherit;
+                font-size: inherit; 
+            }
         `;
     }
 
@@ -126,8 +136,10 @@ class ShapeEditor extends LitElement {
 
     private _updateColor() {
         if (!this.shape) return;
-        const input = this.shadowRoot?.querySelector('input') as HTMLInputElement;
-        this.shape.shape.color = input.value;
+        const {shape} = this.shape;
+        const input = this.shadowRoot?.querySelector('input[type="color"]') as HTMLInputElement;
+        shape.color = input.value;
+        this.shape = { shape }
     }
 
     public disconnectedCallback() {
@@ -135,18 +147,60 @@ class ShapeEditor extends LitElement {
         super.disconnectedCallback();
     }
 
+    private _updateHeight(height: number) {
+        if (!this.shape) return;
+        const {shape} = this.shape;
+        shape.height = height;
+        this.shape = { shape }
+    }
+
+    private _updateWidth(width: number) {
+        if (!this.shape) return;
+        const {shape} = this.shape;
+        shape.width = width;
+        this.shape = { shape }
+    }
+
+    private _updateRadius(radius: number) {
+        if (!this.shape || !(this.shape.shape instanceof Circle)) return;
+        const { shape } = this.shape;
+        shape.radius = radius;
+        this.shape = { shape }
+    }
+
+    private _getDimensionsEditors(): TemplateResult | void {
+        if (!this.shape) return;
+        const { shape } = this.shape;
+        if (shape instanceof Rectangle) {
+            return html`
+                <label for="height">height</label>
+                <input id="height" type="range" value=${shape.height} min="10" max="400" @input=${(e: InputEvent) => this._updateHeight(Number(e.target?.value))} />
+                <label>width</label>
+                <input id="width" type="range" value=${shape.width} min="10" max="400" @input=${(e: InputEvent) => this._updateWidth(Number(e.target?.value))} />
+            `;
+        } else if (shape instanceof Circle) {
+            return html`
+                <label for="radius">radius</label>
+                <input id="radius" type="range" value=${shape.radius} min="10" max="200" @input=${(e: InputEvent) => this._updateRadius(Number(e.target?.value))} />
+            `
+        } else {
+            console.warn('shape not supported');
+        }
+    }
+
     public render() {
         const {shape} = this.shape as {shape: Shape};
         return html`
             <div class="shape-editor">
                 <button class="delete-button" @click=${() => Canvas.eraseShape(shape.id)}>Delete</button>
-                <p class="shape-type">${shape?.constructor.name}</p>
-                <span>center x</span>
-                <span>${shape.center.x}</span>
-                <span>center y</span>
-                <span>${shape.center.y}</span>
-                <span>color</span>
-                <input type="color" value=${this.shape?.shape.color} @input=${() => this._updateColor()} />
+                <p class="shape-type">${shape.type}</p>
+                <label for="centerX">center x</label>
+                <input id="centerX" readonly value=${shape.center.x} />
+                <label for="centerY">center y</label>
+                <input id="centerY" readonly value=${shape.center.y} />
+                ${this._getDimensionsEditors()}
+                <label for="color-picker">color</label>
+                <input id="color-picker" type="color" value=${this.shape?.shape.color} @input=${() => this._updateColor()} />
             </div>
         `;
       }
