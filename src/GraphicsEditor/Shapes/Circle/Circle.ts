@@ -62,7 +62,7 @@ export class Circle extends Shape {
         const y = this.y + Circle._offsetY;
         this._ctx.arc(x, y, this.#radius, 0, Math.PI * 2, true);
         this._ctx.closePath();
-        this._ctx.fillStyle = 'red' //this.color;
+        this._ctx.fillStyle = this.color;
         this._ctx.fill();
 
         return this;

@@ -36,6 +36,7 @@ export class Canvas {
         if (!canvas) return;
         canvas.#shapeEntries.delete(shapeId);
         canvas._redraw();
+        Canvas.updateSelectedShapeEditors();
     }
 
     public static moveShape(shape: Shape): void {
@@ -57,7 +58,6 @@ export class Canvas {
     public static selectShape(shape: Shape): void {
         if (!Canvas._instance) return;
         shape.select();
-        
     }
 
     public static unselectShape(shape: Shape): void {
@@ -73,7 +73,7 @@ export class Canvas {
     #shapeEntries: Map<number, Shape> = new Map();
     #isMouseDown: boolean = false;
 
-    public constructor(canvas: CanvasElement, element?: HTMLCanvasElement) {      
+    public constructor(canvas?: CanvasElement, element?: HTMLCanvasElement) {      
         if (Canvas._instance) {
             return Canvas._instance;
         } else {
@@ -81,6 +81,7 @@ export class Canvas {
         }
 
         if (!element) throw 'Element not provided';
+        if (!canvas) throw 'Canvas not provided';
 
         this.#canvasCustomEl = canvas;
         this.#el = element;

@@ -1,4 +1,4 @@
-import { customElement, property, LitElement, html, css } from 'lit-element';
+import { customElement, property, LitElement, html, css, TemplateResult } from 'lit-element';
 import { Canvas } from './Canvas/Canvas';
 import { Shape, ShapeType } from './Shapes/Shape';
 
@@ -75,7 +75,7 @@ export class CanvasElement extends LitElement {
                 <div class="shape-editor-container">
                     ${this.selectedShapes.map(shape => html`
                         <li>
-                            <shape-editor .shape=${shape}></shape-editor>
+                            <shape-editor .shape=${{shape}}></shape-editor>
                         </li>`
                     )}
                 </div>
@@ -87,7 +87,8 @@ export class CanvasElement extends LitElement {
 @customElement('shape-editor')
 class ShapeEditor extends LitElement {
     @property()
-    public shape?: Shape;
+    public shape?: { shape: Shape };
+    private _unsubscriber?: {unsubscribe: Function};
 
     public static get styles() {
         return css`
@@ -98,39 +99,54 @@ class ShapeEditor extends LitElement {
 
                 width: 300px;
                 display: grid;
-                grid-template-areas:
-                    "delete-button shape-type"
-                    "shape-attributes shape-attributes"
-                ;
-                grid-template-columns: 1fr 2fr;
-            }
-
-            .delete-button {
-                grid-area: delete-button;
+                grid-template-columns: 1fr 1fr;
+                justify-items: center;
+                grid-gap: 10px;
             }
 
             .shape-type {
                 text-align: center;
                 margin: 0;
                 padding: 5px;
-                grid-area: shape-type;
-            }
-
-            .shape-attributes {
-                grid-area: shape-attributes;
             }
         `;
     }
 
+    firstUpdated() {
+        if (!this.shape) return;
+
+        const {shape} = this.shape;
+
+        this._unsubscriber = shape.subscribe((shape) => {
+            this.shape = {
+                shape
+            };
+        });
+    }
+
+    private _updateColor() {
+        if (!this.shape) return;
+        const input = this.shadowRoot?.querySelector('input') as HTMLInputElement;
+        this.shape.shape.color = input.value;
+    }
+
+    public disconnectedCallback() {
+        this._unsubscriber?.unsubscribe();
+        super.disconnectedCallback();
+    }
+
     public render() {
-        console.log('shape', this.shape);
+        const {shape} = this.shape as {shape: Shape};
         return html`
             <div class="shape-editor">
-                <button class="delete-button">Delete</button>
-                <p class="shape-type">${this.shape?.constructor.name}<p>
-                <div class="shape-attributes">
-                    attributes...
-                </div>
+                <button class="delete-button" @click=${() => Canvas.eraseShape(shape.id)}>Delete</button>
+                <p class="shape-type">${shape?.constructor.name}</p>
+                <span>center x</span>
+                <span>${shape.center.x}</span>
+                <span>center y</span>
+                <span>${shape.center.y}</span>
+                <span>color</span>
+                <input type="color" value=${this.shape?.shape.color} @input=${() => this._updateColor()} />
             </div>
         `;
       }

@@ -35,6 +35,7 @@ export abstract class Shape {
     #isSelected: boolean = false;
     #isHoveredOver: boolean = false;
     #isHoverOutlineApplied: boolean = false;
+    #subscribers: Map<number, Shape.SubscriberCallback> = new Map();
 
     constructor(CanvasType: typeof Canvas, options?: Shape.Options) {
         this.#Canvas = CanvasType;
@@ -92,6 +93,7 @@ export abstract class Shape {
         this.#x = this.#draggingEvent?.nextPosition?.x as number;
         this.#y = this.#draggingEvent?.nextPosition?.y as number;
         this.#Canvas.moveShape(this);
+        this.notify();
     }
 
     public get Canvas(): typeof Canvas {
@@ -136,6 +138,21 @@ export abstract class Shape {
         this.#draggingEvent = undefined;
     }
 
+    public subscribe(subscriberCallback: Shape.SubscriberCallback): Shape.Unsubscriber {
+        const subscriberId: number = Date.now() + this.#subscribers.size;
+        this.#subscribers.set(subscriberId, subscriberCallback);
+
+        return {
+            unsubscribe: () => {
+                this.#subscribers.delete(subscriberId);
+            }
+        }
+    }
+
+    public notify(): void {
+        this.#subscribers.forEach(cb => cb(this));
+    }
+
     public get id(): number {
         return this.#id;
     }
@@ -158,6 +175,17 @@ export abstract class Shape {
 
     public get color(): string {
         return this.#color;
+    }
+
+    public set color(color: string) {
+        this.#color = color;
+        this.draw();
+    }
+
+    public get center(): Position {
+        const centerX = this.x + (this.width / 2);
+        const centerY = this.y + (this.height / 2);
+        return new Position(centerX, centerY);
     }
 }
 
@@ -255,5 +283,10 @@ export declare namespace Shape {
     interface MoveToReturn {
         x: number;
         y: number;
+    }
+
+    type SubscriberCallback = (shape: Shape) => void;
+    interface Unsubscriber {
+        unsubscribe(): void;
     }
 }
