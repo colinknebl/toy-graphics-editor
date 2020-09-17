@@ -77,8 +77,12 @@ export abstract class Shape {
         return this;
     }
 
+    protected _clear(): void {
+        this._ctx.clearRect(0, 0, 500, 500);
+    }
+
     public erase(): void {
-        this._ctx.clearRect(this.x, this.y, this.height, this.width);
+        this._clear();
         this.#Canvas.eraseShape(this.id);
     }
 
@@ -153,6 +157,10 @@ export abstract class Shape {
         this.#subscribers.forEach(cb => cb(this));
     }
 
+    public get type(): string {
+        return this.constructor.name;
+    }
+
     public get id(): number {
         return this.#id;
     }
@@ -169,8 +177,20 @@ export abstract class Shape {
         return this.#height;
     }
 
+    public set height(height: number) {
+        this.#height = height;
+        this._clear();
+        this.draw();
+    }
+
     public get width(): number {
         return this.#width;
+    }
+
+    public set width(width: number) {
+        this.#width = width;
+        this._clear();
+        this.draw();
     }
 
     public get color(): string {
@@ -189,7 +209,7 @@ export abstract class Shape {
     }
 }
 
-class Position {
+export class Position {
     #x: number;
     #y: number;
 
