@@ -3,31 +3,19 @@ import { Position } from '../../lib/Position';
 import type { Canvas } from "../../Canvas/Canvas";
 
 export class Circle extends Shape {
+
+    // ========================================================================
     private static _offset = 50;
 
+    // ========================================================================
     #radius: number = Circle._offset;
 
+    // ========================================================================
     public constructor(CanvasType: typeof Canvas) {
         super(CanvasType);
     }
 
-    public get radius(): number {
-        return this.#radius;
-    }
-
-    public set radius(radius: number) {
-        this.#radius = radius;
-        this.Canvas.redraw();
-    }
-
-    public get height(): number {
-        return this.#radius * 2;
-    }
-
-    public get width(): number {
-        return this.#radius * 2;
-    }
-
+    // ========================================================================
     protected _hover(): void {
         this._ctx.beginPath();
         const x = this.x + Circle._offset;
@@ -39,6 +27,7 @@ export class Circle extends Shape {
         this._draw();
     }
 
+    // ========================================================================
     protected _select(): void {
         this._ctx.beginPath();
         const x = this.x + Circle._offset;
@@ -48,6 +37,7 @@ export class Circle extends Shape {
         this._ctx.closePath();
     }
 
+    // ========================================================================
     protected _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean {
         const centerX = this.center.x + boundingRect.left;
         const centerY = this.center.y + boundingRect.top;
@@ -56,12 +46,7 @@ export class Circle extends Shape {
         return Math.sqrt(deltaX + deltaY) <= this.radius;
     }
 
-    public get center(): Position {
-        const centerX = this.x + Circle._offset;
-        const centerY = this.y + Circle._offset;
-        return new Position(centerX, centerY);
-    }
-
+    // ========================================================================
     protected _draw(): Shape {
         this._ctx.beginPath();
         const x = this.x + Circle._offset;
@@ -73,5 +58,33 @@ export class Circle extends Shape {
         
 
         return this;
+    }
+
+    // ========================================================================
+    public get center(): Position {
+        const centerX = this.x + Circle._offset;
+        const centerY = this.y + Circle._offset;
+        return new Position(centerX, centerY);
+    }
+
+    // ========================================================================
+    public get radius(): number {
+        return this.#radius;
+    }
+
+    // ========================================================================
+    public set radius(radius: number) {
+        this.#radius = radius;
+        this.Canvas.redraw();
+    }
+
+    // ========================================================================
+    public get height(): number {
+        return this.#radius * 2;
+    }
+
+    // ========================================================================
+    public get width(): number {
+        return this.#radius * 2;
     }
 }
