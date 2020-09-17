@@ -30,12 +30,11 @@ export abstract class Shape {
     #height: number;
     #width: number;
     #Canvas: typeof Canvas;
-    #color: string = 'black';
+    #color: string = '#000000';
     #draggingEvent?: DraggingEvent;
     #isSelected: boolean = false;
     #isHoveredOver: boolean = false;
     #isHoverOutlineApplied: boolean = false;
-    #subscribers: Map<number, Shape.SubscriberCallback> = new Map();
 
     constructor(CanvasType: typeof Canvas, options?: Shape.Options) {
         this.#Canvas = CanvasType;
@@ -77,12 +76,7 @@ export abstract class Shape {
         return this;
     }
 
-    protected _clear(): void {
-        this._ctx.clearRect(0, 0, 500, 500);
-    }
-
     public erase(): void {
-        this._clear();
         this.#Canvas.eraseShape(this.id);
     }
 
@@ -97,7 +91,6 @@ export abstract class Shape {
         this.#x = this.#draggingEvent?.nextPosition?.x as number;
         this.#y = this.#draggingEvent?.nextPosition?.y as number;
         this.#Canvas.moveShape(this);
-        this.notify();
     }
 
     public get Canvas(): typeof Canvas {
@@ -142,21 +135,6 @@ export abstract class Shape {
         this.#draggingEvent = undefined;
     }
 
-    public subscribe(subscriberCallback: Shape.SubscriberCallback): Shape.Unsubscriber {
-        const subscriberId: number = Date.now() + this.#subscribers.size;
-        this.#subscribers.set(subscriberId, subscriberCallback);
-
-        return {
-            unsubscribe: () => {
-                this.#subscribers.delete(subscriberId);
-            }
-        }
-    }
-
-    public notify(): void {
-        this.#subscribers.forEach(cb => cb(this));
-    }
-
     public get type(): string {
         return this.constructor.name;
     }
@@ -179,8 +157,7 @@ export abstract class Shape {
 
     public set height(height: number) {
         this.#height = height;
-        this._clear();
-        this.draw();
+        this.#Canvas.redraw();
     }
 
     public get width(): number {
@@ -189,8 +166,7 @@ export abstract class Shape {
 
     public set width(width: number) {
         this.#width = width;
-        this._clear();
-        this.draw();
+        this.#Canvas.redraw();
     }
 
     public get color(): string {
@@ -206,6 +182,10 @@ export abstract class Shape {
         const centerX = this.x + (this.width / 2);
         const centerY = this.y + (this.height / 2);
         return new Position(centerX, centerY);
+    }
+
+    public getColor(): string {
+        return this.#color;
     }
 }
 
@@ -303,10 +283,5 @@ export declare namespace Shape {
     interface MoveToReturn {
         x: number;
         y: number;
-    }
-
-    type SubscriberCallback = (shape: Shape) => void;
-    interface Unsubscriber {
-        unsubscribe(): void;
     }
 }
