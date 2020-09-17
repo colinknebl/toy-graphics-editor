@@ -1,4 +1,4 @@
-import { Shape } from "../Shape";
+import { Position, Shape } from "../Shape";
 import type { Canvas } from "../../Canvas/Canvas";
 
 export class Circle extends Shape {
@@ -6,9 +6,20 @@ export class Circle extends Shape {
     private static _offsetY = 10;
 
     #radius: number = 10;
+    #center: Position = new Position(Circle._offsetX, Circle._offsetY);
 
     public constructor(CanvasType: typeof Canvas) {
         super(CanvasType);
+    }
+
+    public get radius(): number {
+        return this.#radius;
+    }
+
+    public set radius(radius: number) {
+        this.#radius = radius;
+        this._clear();
+        this.draw();
     }
 
     public get height(): number {
@@ -40,20 +51,17 @@ export class Circle extends Shape {
     }
 
     protected _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean {
-        const canvasPosition = boundingRect;
+        const centerX = this.center.x + boundingRect.left;
+        const centerY = this.center.y + boundingRect.top;
+        const deltaX = Math.pow(x - centerX, 2);
+        const deltaY = Math.pow(y - centerY, 2);
+        return Math.sqrt(deltaX + deltaY) <= this.radius;
+    }
 
-        const position = { 
-                x: canvasPosition.left + this.x,
-                y: canvasPosition.top + this.y
-            },
-            size   = { height: this.#radius * 2, width: this.#radius * 2},
-            radius = this.#radius,
-            centerX = position.x + (size.width / 2),
-            centerY = position.y + (size.height / 2),
-            distanceX = x - centerX,
-            distanceY = y - centerY;
-			
-		return Math.round(Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2))) <= radius;  
+    public get center(): Position {
+        const centerX = this.x + Circle._offsetX;
+        const centerY = this.y + Circle._offsetY;
+        return new Position(centerX, centerY);
     }
 
     protected _draw(): Shape {
