@@ -1,6 +1,6 @@
 import { customElement, property, LitElement, html, css } from 'lit-element';
 import { Canvas } from './Canvas/Canvas';
-import { ShapeType } from './Shapes/Shape';
+import { Shape, ShapeType } from './Shapes/Shape';
 
 @customElement('graphics-editor')
 export class CanvasElement extends LitElement {
@@ -9,6 +9,9 @@ export class CanvasElement extends LitElement {
     get canvas(): Canvas | undefined {
         return this._canvas;
     }
+
+    @property()
+    public selectedShapes: Shape[] = []
 
     private _addShape(type: ShapeType): void {
         const shape = Canvas.addShape(type);
@@ -43,6 +46,10 @@ export class CanvasElement extends LitElement {
             .canvas-container {
                 border: 3px solid #333;
             }
+
+            .shape-editor-container {
+                width: 300px;
+            }
         `;
     }
 
@@ -51,7 +58,7 @@ export class CanvasElement extends LitElement {
     }
 
     public firstUpdated() {
-        this._canvas = new Canvas(this.shadowRoot?.querySelector('canvas') as HTMLCanvasElement);
+        this._canvas = new Canvas(this, this.shadowRoot?.querySelector('canvas') as HTMLCanvasElement);
         (window as any).canvas = this._canvas;
     }
 
@@ -65,7 +72,13 @@ export class CanvasElement extends LitElement {
                 <div class="canvas-container">
                     <canvas height="500" width="500"></canvas>
                 </div>
-                <shape-editor .shape="${{foo: 'bar'}}"></shape-editor>
+                <div class="shape-editor-container">
+                    ${this.selectedShapes.map(shape => html`
+                        <li>
+                            <shape-editor .shape=${shape}></shape-editor>
+                        </li>`
+                    )}
+                </div>
             </div>
         `;
       }
@@ -74,7 +87,7 @@ export class CanvasElement extends LitElement {
 @customElement('shape-editor')
 class ShapeEditor extends LitElement {
     @property()
-    public shape?: {foo: string};
+    public shape?: Shape;
 
     public static get styles() {
         return css`
@@ -89,6 +102,7 @@ class ShapeEditor extends LitElement {
                     "delete-button shape-type"
                     "shape-attributes shape-attributes"
                 ;
+                grid-template-columns: 1fr 2fr;
             }
 
             .delete-button {
@@ -109,10 +123,11 @@ class ShapeEditor extends LitElement {
     }
 
     public render() {
+        console.log('shape', this.shape);
         return html`
             <div class="shape-editor">
                 <button class="delete-button">Delete</button>
-                <p class="shape-type">ShapeType<p>
+                <p class="shape-type">${this.shape?.constructor.name}<p>
                 <div class="shape-attributes">
                     attributes...
                 </div>

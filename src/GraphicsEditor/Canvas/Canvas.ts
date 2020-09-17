@@ -1,3 +1,4 @@
+import type { CanvasElement } from "../graphics-editor";
 import { Circle } from "../Shapes/Circle/Circle";
 import { Rectangle } from "../Shapes/Rectangle/Rectangle";
 import { Shape, ShapeType } from "../Shapes/Shape";
@@ -48,13 +49,31 @@ export class Canvas {
         Canvas._instance?._redraw();
     }
 
+    public static updateSelectedShapeEditors(): void {
+        if (!Canvas._instance) return;
+        Canvas._instance.#canvasCustomEl.selectedShapes = Canvas._instance._selectedShapes;
+    }
+
+    public static selectShape(shape: Shape): void {
+        if (!Canvas._instance) return;
+        shape.select();
+        
+    }
+
+    public static unselectShape(shape: Shape): void {
+        if (!Canvas._instance) return;
+        Canvas._instance.#canvasCustomEl.selectedShapes = Canvas._instance._selectedShapes;
+        shape.unselect();
+    }
+
 
     private static _instance?: Canvas;
     #el!: HTMLCanvasElement;
+    #canvasCustomEl!: CanvasElement;
     #shapeEntries: Map<number, Shape> = new Map();
     #isMouseDown: boolean = false;
 
-    public constructor(element?: HTMLCanvasElement) {      
+    public constructor(canvas: CanvasElement, element?: HTMLCanvasElement) {      
         if (Canvas._instance) {
             return Canvas._instance;
         } else {
@@ -63,6 +82,7 @@ export class Canvas {
 
         if (!element) throw 'Element not provided';
 
+        this.#canvasCustomEl = canvas;
         this.#el = element;
         this.#el.addEventListener('mousemove', this._onMouseMove);
         this.#el.addEventListener('mousedown', this._onMouseDown);
@@ -83,6 +103,11 @@ export class Canvas {
 
     private _unselectAllShapes(): void {
         this._shapesArray.forEach(shape => shape.unselect());
+        this.#canvasCustomEl.selectedShapes = []
+    }
+
+    private get _selectedShapes(): Shape[] {
+        return this._shapesArray.filter(shape => shape.isSelected);
     }
 
     private get _shapesArray(): Shape[] {
@@ -99,14 +124,14 @@ export class Canvas {
 
         this._shapesArray.reverse().map(shape => {
 
-            if (shape.isPointOver(event.clientX, event.clientY)) {
-                shape.select();
-            } else if (event.shiftKey &&  shape.isSelected) {
-                shape.select();
+            if (shape.isPointOver(event.clientX, event.clientY) || event.shiftKey && shape.isSelected) {
+                Canvas.selectShape(shape);
             } else {
-                shape.unselect();
+                Canvas.unselectShape(shape);
             }
         });
+
+        Canvas.updateSelectedShapeEditors();
     }
 
     private _onMouseMove = (event: MouseEvent): void => {
