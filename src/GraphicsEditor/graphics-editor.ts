@@ -17,7 +17,7 @@ export class CanvasElement extends LitElement {
     public shapes: Shape[] = []
 
     private _addShape(type: ShapeType): void {
-        const shape = Canvas.addShape(type);
+        const shape = Canvas.initShape(type);
         this.canvas?.drawShape(shape);
     }
 
