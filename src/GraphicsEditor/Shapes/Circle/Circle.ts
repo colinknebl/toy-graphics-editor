@@ -1,4 +1,5 @@
-import { Position, Shape } from "../Shape";
+import { Shape } from "../Shape";
+import { Position } from '../../lib/Position';
 import type { Canvas } from "../../Canvas/Canvas";
 
 export class Circle extends Shape {
