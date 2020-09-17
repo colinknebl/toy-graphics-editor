@@ -2,11 +2,9 @@ import { Position, Shape } from "../Shape";
 import type { Canvas } from "../../Canvas/Canvas";
 
 export class Circle extends Shape {
-    private static _offsetX = 10;
-    private static _offsetY = 10;
+    private static _offset = 50;
 
-    #radius: number = 10;
-    #center: Position = new Position(Circle._offsetX, Circle._offsetY);
+    #radius: number = Circle._offset;
 
     public constructor(CanvasType: typeof Canvas) {
         super(CanvasType);
@@ -18,8 +16,7 @@ export class Circle extends Shape {
 
     public set radius(radius: number) {
         this.#radius = radius;
-        this._clear();
-        this.draw();
+        this.Canvas.redraw();
     }
 
     public get height(): number {
@@ -32,8 +29,8 @@ export class Circle extends Shape {
 
     protected _hover(): void {
         this._ctx.beginPath();
-        const x = this.x + Circle._offsetX;
-        const y = this.y + Circle._offsetY;
+        const x = this.x + Circle._offset;
+        const y = this.y + Circle._offset;
         this._ctx.arc(x, y, this.#radius + Shape.outline.hover.size, 0, Math.PI * 2, true);
         this._ctx.closePath();
         this._ctx.fillStyle = Shape.outline.hover.color;
@@ -43,8 +40,8 @@ export class Circle extends Shape {
 
     protected _select(): void {
         this._ctx.beginPath();
-        const x = this.x + Circle._offsetX;
-        const y = this.y + Circle._offsetY;
+        const x = this.x + Circle._offset;
+        const y = this.y + Circle._offset;
         this._ctx.arc(x, y, this.#radius + (Shape.outline.select.size * 2), 0, Math.PI * 2, true);
         this._ctx.stroke();
         this._ctx.closePath();
@@ -59,19 +56,20 @@ export class Circle extends Shape {
     }
 
     public get center(): Position {
-        const centerX = this.x + Circle._offsetX;
-        const centerY = this.y + Circle._offsetY;
+        const centerX = this.x + Circle._offset;
+        const centerY = this.y + Circle._offset;
         return new Position(centerX, centerY);
     }
 
     protected _draw(): Shape {
         this._ctx.beginPath();
-        const x = this.x + Circle._offsetX;
-        const y = this.y + Circle._offsetY;
+        const x = this.x + Circle._offset;
+        const y = this.y + Circle._offset;
         this._ctx.arc(x, y, this.#radius, 0, Math.PI * 2, true);
-        this._ctx.closePath();
         this._ctx.fillStyle = this.color;
         this._ctx.fill();
+        this._ctx.closePath();
+        
 
         return this;
     }
