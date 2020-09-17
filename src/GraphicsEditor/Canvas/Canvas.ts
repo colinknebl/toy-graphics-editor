@@ -43,26 +43,28 @@ export class Canvas {
         const canvas = Canvas._instance;
         if (!canvas) return;
         canvas.#shapeEntries.set(shape.id, shape);
-        canvas._redraw();
+        Canvas.redraw();
     }
 
     public static redraw(): void {
-        Canvas._instance?._redraw();
+        if (!Canvas._instance) return;
+        Canvas._instance._redraw();
+        Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
     }
 
     public static updateSelectedShapeEditors(): void {
         if (!Canvas._instance) return;
-        Canvas._instance.#canvasCustomEl.selectedShapes = Canvas._instance._selectedShapes;
+        Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
     }
 
     public static selectShape(shape: Shape): void {
-        if (!Canvas._instance) return;
+        if (!Canvas._instance || shape.isSelected) return;
         shape.select();
     }
 
     public static unselectShape(shape: Shape): void {
-        if (!Canvas._instance) return;
-        Canvas._instance.#canvasCustomEl.selectedShapes = Canvas._instance._selectedShapes;
+        if (!Canvas._instance || !shape.isSelected) return;
+        Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
         shape.unselect();
     }
 
@@ -104,11 +106,6 @@ export class Canvas {
 
     private _unselectAllShapes(): void {
         this._shapesArray.forEach(shape => shape.unselect());
-        this.#canvasCustomEl.selectedShapes = []
-    }
-
-    private get _selectedShapes(): Shape[] {
-        return this._shapesArray.filter(shape => shape.isSelected);
     }
 
     private get _shapesArray(): Shape[] {
@@ -117,17 +114,14 @@ export class Canvas {
 
     private _onMouseDown = (event: MouseEvent): void => {
         this.#isMouseDown = true;
-    
-        const isPointOverShape = this._isPointOverShape(event.clientX, event.clientY);
 
-        if (!isPointOverShape) 
-            return this._unselectAllShapes();
-
+        let oneIsSelected = false;
         this._shapesArray.reverse().map(shape => {
 
-            if (shape.isPointOver(event.clientX, event.clientY) || event.shiftKey && shape.isSelected) {
+            if (shape.isPointOver(event.clientX, event.clientY) && !oneIsSelected) {
                 Canvas.selectShape(shape);
-            } else {
+                oneIsSelected = true;
+            } else if (!event.shiftKey) {
                 Canvas.unselectShape(shape);
             }
         });
@@ -136,11 +130,14 @@ export class Canvas {
     }
 
     private _onMouseMove = (event: MouseEvent): void => {
+        let oneIsHovered = false;
+
         this._shapesArray.reverse().map(shape => {
                 
             // if the mouse is over the shape, hover
-            if (shape.isPointOver(event.clientX, event.clientY)) {
-                    shape.hover();
+            if (!oneIsHovered && shape.isPointOver(event.clientX, event.clientY)) {
+                shape.hover();
+                oneIsHovered = true;
             } else {
                 shape.unhover();
             }
@@ -156,7 +153,7 @@ export class Canvas {
         // clear the canvas
         this.ctx.clearRect(0, 0, Canvas.height, Canvas.width);
 
-        for (let shape of this.#shapeEntries.values()) {
+        for (let shape of this._shapesArray) {
             shape.draw();
         }
     }
@@ -175,7 +172,7 @@ export class Canvas {
 
     public drawShape(shape: Shape): Shape {
         shape.draw();
-        this.ctx.fillStyle = 'black';
+        this.ctx.fillStyle = '#000000';
 
         this.#shapeEntries.set(shape.id, shape);
 
