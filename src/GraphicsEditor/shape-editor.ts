@@ -2,7 +2,7 @@ import { customElement, property, LitElement, html, css, TemplateResult} from 'l
 import { Canvas } from './Canvas/Canvas';
 import { Circle } from './Shapes/Circle/Circle';
 import { Rectangle } from './Shapes/Rectangle/Rectangle';
-import type { Shape } from './Shapes/Shape';
+import { Shape } from './Shapes/Shape';
 
 @customElement('shape-editor')
 class ShapeEditor extends LitElement {
@@ -41,30 +41,23 @@ class ShapeEditor extends LitElement {
 
     private _updateHeight(height: number) {
         if (!this.shape) return;
-        const {shape} = this.shape;
-        shape.height = height;
-        this.shape = { shape }
+        Shape.setHeight(this.shape.shape, height);
     }
 
     private _updateWidth(width: number) {
         if (!this.shape) return;
-        const {shape} = this.shape;
-        shape.width = width;
-        this.shape = { shape }
+        Shape.setWidth(this.shape.shape, width);
     }
 
     private _updateRadius(radius: number) {
         if (!this.shape || !(this.shape.shape instanceof Circle)) return;
-        const { shape } = this.shape;
-        shape.radius = radius;
-        this.shape = { shape }
+        Circle.setRadius(this.shape.shape, radius);
     }
 
     private _updateColor() {
         if (!this.shape) return;
-        const {shape} = this.shape;
         const color = (this.shadowRoot?.querySelector('input#color-picker') as HTMLInputElement).value
-        shape.color = color;
+        Shape.setColor(this.shape.shape, color);
     }
 
     private _getDimensionsEditors(): TemplateResult | void {

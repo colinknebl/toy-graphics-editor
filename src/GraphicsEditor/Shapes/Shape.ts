@@ -9,13 +9,47 @@ export enum ShapeType {
 
 export abstract class Shape {
     // ========================================================================
-    public static outline = {
+    public static Canvas: typeof Canvas;
+
+    // ========================================================================
+    public static setWidth(shape: Shape, width: number): void {
+        shape.#width = width;
+        Shape.Canvas.redraw();
+    }
+
+    // ========================================================================
+    public static setHeight(shape: Shape, height: number): void {
+        shape.#height = height;
+        Shape.Canvas.redraw();
+    }
+
+    public static setColor(shape: Shape, color: string): void {
+        shape.#color = color;
+        shape.draw();
+    }
+
+    // ========================================================================
+    public static select(shape: Shape): void {
+        shape.select();
+    }
+
+    // ========================================================================
+    public static unselect(shape: Shape): void {
+        shape.unselect();
+        Shape.Canvas.redraw();
+    }
+
+    public static endDrag(shape: Shape): void {
+        shape.#draggingEvent = undefined;
+    }
+
+    // ========================================================================
+    public static readonly outline = {
+        size: 3,
         hover: {
-            size: 6,
             color: 'rgba(24, 117, 255, 0.55)'
         },
         select: {
-            size: 3,
             color: 'gold'
         }
     };
@@ -34,7 +68,6 @@ export abstract class Shape {
     #y: number;
     #height: number;
     #width: number;
-    #Canvas: typeof Canvas;
     #color: string = '#000000';
     #draggingEvent?: DraggingEvent;
     #isSelected: boolean = false;
@@ -42,8 +75,7 @@ export abstract class Shape {
     #isHoverOutlineApplied: boolean = false;
 
     // ========================================================================
-    public constructor(CanvasType: typeof Canvas, options?: Shape.Options) {
-        this.#Canvas = CanvasType;
+    public constructor(options?: Shape.Options) {
         this.#x = options?.x ?? 0;
         this.#y = options?.y ?? 0;
         this.#height = options?.height ?? 0;
@@ -53,7 +85,7 @@ export abstract class Shape {
     
     // ========================================================================
     protected get _ctx() {
-        return new this.#Canvas().ctx;
+        return new Shape.Canvas().ctx;
     }
 
     // ========================================================================
@@ -89,13 +121,13 @@ export abstract class Shape {
 
     // ========================================================================
     public erase(): void {
-        this.#Canvas.eraseShape(this.id);
+        Shape.Canvas.eraseShape(this.id);
     }
 
     // ========================================================================
     public handleMoveEvent(event: MouseEvent): void {
         if (!this.#draggingEvent) {
-            this.#draggingEvent = new DraggingEvent(event, this, this.#Canvas);
+            this.#draggingEvent = new DraggingEvent(event, this, Shape.Canvas);
             return;
         } else {
             this.#draggingEvent.setLastEvent(event);
@@ -103,20 +135,16 @@ export abstract class Shape {
 
         this.#x = this.#draggingEvent?.nextPosition?.x as number;
         this.#y = this.#draggingEvent?.nextPosition?.y as number;
-        this.#Canvas.moveShape(this);
+        Shape.Canvas.moveShape(this);
     }
 
     // ========================================================================
-    public get Canvas(): typeof Canvas {
-        return this.#Canvas;
-    }
-
     // ========================================================================
     protected abstract _hover(): void;
     public hover(): void {
         this.#isHoveredOver = true;
         if (this.#isHoverOutlineApplied) return;
-        this._ctx.lineWidth = Shape.outline.hover.size;
+        this._ctx.lineWidth = Shape.outline.size;
         this._ctx.strokeStyle = Shape.outline.hover.color;
         this._hover();
         this.#isHoverOutlineApplied = true;
@@ -126,20 +154,20 @@ export abstract class Shape {
     public unhover(): void {
         this.#isHoveredOver = false;
         this.#isHoverOutlineApplied = false;
-        this.#Canvas.redraw();
+        Shape.Canvas.redraw();
     }
 
     // ========================================================================
     protected abstract _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean;
     public isPointOver(x: number, y: number): boolean {
-        return this._isPointOver(x, y, this.#Canvas.getBoundingClientRect());;
+        return this._isPointOver(x, y, Shape.Canvas.getBoundingClientRect());;
     }
 
     // ========================================================================
     protected abstract _select(): void;
     public select(): void {
         this.#isSelected = true;
-        this._ctx.lineWidth = Shape.outline.select.size;
+        this._ctx.lineWidth = Shape.outline.size;
         this._ctx.strokeStyle = Shape.outline.select.color;
         this._select();
     }
@@ -147,12 +175,7 @@ export abstract class Shape {
     // ========================================================================
     public unselect(): void {
         this.#isSelected = false;
-        this.#Canvas.redraw();
-    }
-
-    // ========================================================================
-    public endDrag(): void {
-        this.#draggingEvent = undefined;
+        Shape.Canvas.redraw();
     }
 
     // ========================================================================
@@ -181,31 +204,12 @@ export abstract class Shape {
     }
 
     // ========================================================================
-    public set height(height: number) {
-        this.#height = height;
-        this.#Canvas.redraw();
-    }
-
-    // ========================================================================
     public get width(): number {
         return this.#width;
     }
-
-    // ========================================================================
-    public set width(width: number) {
-        this.#width = width;
-        this.#Canvas.redraw();
-    }
-
     // ========================================================================
     public get color(): string {
         return this.#color;
-    }
-
-    // ========================================================================
-    public set color(color: string) {
-        this.#color = color;
-        this.draw();
     }
 
     // ========================================================================
@@ -213,11 +217,6 @@ export abstract class Shape {
         const centerX = this.x + (this.width / 2);
         const centerY = this.y + (this.height / 2);
         return new Position(centerX, centerY);
-    }
-
-    // ========================================================================
-    public getColor(): string {
-        return this.#color;
     }
 }
 

@@ -1,6 +1,5 @@
 import { Shape } from "../Shape";
 import { Position } from '../../lib/Position';
-import type { Canvas } from "../../Canvas/Canvas";
 
 export class Circle extends Shape {
 
@@ -8,23 +7,25 @@ export class Circle extends Shape {
     private static _offset = 50;
 
     // ========================================================================
-    #radius: number = Circle._offset;
-
-    // ========================================================================
-    public constructor(CanvasType: typeof Canvas) {
-        super(CanvasType);
+    public static setRadius(circle: Circle, radius: number): void {
+        circle.#radius = radius;
+        Shape.Canvas.redraw();
     }
 
     // ========================================================================
+    #radius: number = Circle._offset;
+
+    // ========================================================================
     protected _hover(): void {
+        const size = Shape.outline.size;
+        this._ctx.lineWidth = size * 2;
+        this._ctx.strokeStyle = Shape.outline.hover.color;
         this._ctx.beginPath();
         const x = this.x + Circle._offset;
         const y = this.y + Circle._offset;
-        this._ctx.arc(x, y, this.#radius + Shape.outline.hover.size, 0, Math.PI * 2, true);
+        this._ctx.arc(x, y, this.#radius + size, 0, Math.PI * 2, true);
+        this._ctx.stroke();
         this._ctx.closePath();
-        this._ctx.fillStyle = Shape.outline.hover.color;
-        this._ctx.fill();
-        this._draw();
     }
 
     // ========================================================================
@@ -32,7 +33,7 @@ export class Circle extends Shape {
         this._ctx.beginPath();
         const x = this.x + Circle._offset;
         const y = this.y + Circle._offset;
-        this._ctx.arc(x, y, this.#radius + (Shape.outline.select.size * 2), 0, Math.PI * 2, true);
+        this._ctx.arc(x, y, this.#radius + (Shape.outline.size * 2) + 1, 0, Math.PI * 2, true);
         this._ctx.stroke();
         this._ctx.closePath();
     }
@@ -55,8 +56,7 @@ export class Circle extends Shape {
         this._ctx.fillStyle = this.color;
         this._ctx.fill();
         this._ctx.closePath();
-        
-
+    
         return this;
     }
 
@@ -70,12 +70,6 @@ export class Circle extends Shape {
     // ========================================================================
     public get radius(): number {
         return this.#radius;
-    }
-
-    // ========================================================================
-    public set radius(radius: number) {
-        this.#radius = radius;
-        this.Canvas.redraw();
     }
 
     // ========================================================================

@@ -26,9 +26,9 @@ export class Canvas {
     // ========================================================================
     public static initShape(type: ShapeType): Shape {
         if (type === ShapeType.circle) {
-            return new Circle(Canvas);
+            return new Circle();
         } else if (type === ShapeType.rectangle) {
-            return new Rectangle(Canvas);
+            return new Rectangle();
         } else {
             throw new Error('Unsupported shape type');
         }
@@ -44,7 +44,7 @@ export class Canvas {
         const canvas = Canvas._instance;
         if (!canvas) return;
         canvas.#shapeEntries.delete(shapeId);
-        canvas._redraw();
+        Canvas.redraw();
         Canvas.updateSelectedShapeEditors();
     }
 
@@ -59,7 +59,12 @@ export class Canvas {
     // ========================================================================
     public static redraw(): void {
         if (!Canvas._instance) return;
-        Canvas._instance._redraw();
+        // clear the canvas
+        Canvas._instance.ctx.clearRect(0, 0, Canvas.height, Canvas.width);
+
+        for (let shape of Canvas._instance._shapesArray) {
+            shape.draw();
+        }
         Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
     }
 
@@ -68,20 +73,6 @@ export class Canvas {
         if (!Canvas._instance) return;
         Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
     }
-
-    // ========================================================================
-    public static selectShape(shape: Shape): void {
-        if (!Canvas._instance || shape.isSelected) return;
-        shape.select();
-    }
-
-    // ========================================================================
-    public static unselectShape(shape: Shape): void {
-        if (!Canvas._instance || !shape.isSelected) return;
-        Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
-        shape.unselect();
-    }
-
 
     // ========================================================================
     #el!: HTMLCanvasElement;
@@ -96,6 +87,8 @@ export class Canvas {
         } else {
             Canvas._instance = this;
         }
+
+        Shape.Canvas = Canvas;
 
         if (!element) throw 'Element not provided';
         if (!canvas) throw 'Canvas not provided';
@@ -112,7 +105,7 @@ export class Canvas {
         this.#isMouseDown = false;
 
         this._shapesArray.reverse().map(shape => {
-            shape.endDrag();
+            Shape.endDrag(shape);
         });
     }
 
@@ -129,10 +122,10 @@ export class Canvas {
         this._shapesArray.reverse().map(shape => {
 
             if (shape.isPointOver(event.clientX, event.clientY) && !oneIsSelected) {
-                Canvas.selectShape(shape);
+                Shape.select(shape);
                 oneIsSelected = true;
             } else if (!event.shiftKey) {
-                Canvas.unselectShape(shape);
+                Shape.unselect(shape);
             }
         });
 
@@ -158,16 +151,6 @@ export class Canvas {
                 shape.handleMoveEvent(event);
             }
         });
-    }
-
-    // ========================================================================
-    private _redraw(): void {
-        // clear the canvas
-        this.ctx.clearRect(0, 0, Canvas.height, Canvas.width);
-
-        for (let shape of this._shapesArray) {
-            shape.draw();
-        }
     }
 
     // ========================================================================

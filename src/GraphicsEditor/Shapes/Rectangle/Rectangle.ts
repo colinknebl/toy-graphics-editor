@@ -1,25 +1,24 @@
 import { Shape } from "../Shape";
-import type { Canvas } from "../../Canvas/Canvas";
 
 export class Rectangle extends Shape {
     
     // ========================================================================
-    public constructor(CanvasType: typeof Canvas) {
-        super(CanvasType, {height: 100, width: 100});
+    public constructor() {
+        super({height: 100, width: 100});
     }
 
     // ========================================================================
     protected _hover(): void {
-        const size = Shape.outline.hover.size;
-        this._ctx.fillStyle = Shape.outline.hover.color;
-        this._ctx.fillRect(this.x - size, this.y - size, this.width + size * 2, this.height + size * 2);
-        this._draw();
+        const size = Shape.outline.size;
+        this._ctx.lineWidth = size * 2;
+        this._ctx.strokeStyle = Shape.outline.hover.color;
+        this._ctx.strokeRect(this.x - size, this.y - size, this.width + size * 2, this.height + size * 2);
     }
 
     // ========================================================================
     protected _select(): void {
-        const size = Shape.outline.hover.size;
-        this._ctx.strokeRect(this.x - size, this.y - size, this.width + size * 2, this.height + size * 2);
+        const size = Shape.outline.size + 1;
+        this._ctx.strokeRect(this.x - size * 2, this.y - size * 2, this.width + size * 4, this.height + size * 4);
     }
 
     // ========================================================================
