@@ -16,7 +16,7 @@ export class Circle extends Shape {
     #radius: number = Circle._offset;
 
     // ========================================================================
-    protected _hover(): void {
+    protected hover(): void {
         const size = Shape.outline.size;
         this._ctx.lineWidth = size * 2;
         this._ctx.strokeStyle = Shape.outline.hover.color;

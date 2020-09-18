@@ -41,17 +41,25 @@ export abstract class Shape {
 
     // ========================================================================
     public static unhover(shape: Shape): void {
-        shape.unhover();
+        shape.#isHoveredOver = false;
+        Shape.Canvas.redraw();
     }
 
     // ========================================================================
     public static hover(shape: Shape): void {
+        if (shape.#isHoveredOver) return;
+        shape.#isHoveredOver = true;
         shape.hover();
     }
 
     // ========================================================================
     public static endDrag(shape: Shape): void {
         shape.#draggingEvent = undefined;
+    }
+
+    // ========================================================================
+    public static erase(shape: Shape): void {
+        Shape.Canvas.eraseShape(shape.id);
     }
 
     // ========================================================================
@@ -83,7 +91,6 @@ export abstract class Shape {
     #draggingEvent?: DraggingEvent;
     #isSelected: boolean = false;
     #isHoveredOver: boolean = false;
-    #isHoverOutlineApplied: boolean = false;
 
     // ========================================================================
     public constructor(options?: Shape.Options) {
@@ -120,7 +127,7 @@ export abstract class Shape {
         this._draw();
 
         if (this.isHoveredOver) {
-            this._hover();
+            this.hover();
         }
 
         if (this.#isSelected) {
@@ -128,11 +135,6 @@ export abstract class Shape {
         }
 
         return this;
-    }
-
-    // ========================================================================
-    public erase(): void {
-        Shape.Canvas.eraseShape(this.id);
     }
 
     // ========================================================================
@@ -150,23 +152,12 @@ export abstract class Shape {
     }
 
     // ========================================================================
-    // ========================================================================
-    protected abstract _hover(): void;
-    private hover(): void {
-        this.#isHoveredOver = true;
-        if (this.#isHoverOutlineApplied) return;
-        this._ctx.lineWidth = Shape.outline.size;
-        this._ctx.strokeStyle = Shape.outline.hover.color;
-        this._hover();
-        this.#isHoverOutlineApplied = true;
+    protected get _shouldHover(): boolean {
+        return !this.#isHoveredOver;
     }
 
     // ========================================================================
-    private unhover(): void {
-        this.#isHoveredOver = false;
-        this.#isHoverOutlineApplied = false;
-        Shape.Canvas.redraw();
-    }
+    protected abstract hover(): void;
 
     // ========================================================================
     protected abstract _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean;

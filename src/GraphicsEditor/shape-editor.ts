@@ -90,7 +90,7 @@ class ShapeEditor extends LitElement {
         const {shape} = this.shape as {shape: Shape};
         return html`
             <div class="shape-editor">
-                <button class="delete-button" @click=${() => Canvas.eraseShape(shape.id)}>Delete</button>
+                <button class="delete-button" @click=${() => Shape.erase(shape)}>Delete</button>
                 <p class="shape-type">${shape.type}</p>
                 <label for="centerX">center x</label>
                 <input id="centerX" readonly value=${shape.center.x} />

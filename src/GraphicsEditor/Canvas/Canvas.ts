@@ -45,7 +45,6 @@ export class Canvas {
         if (!canvas) return;
         canvas.#shapeEntries.delete(shapeId);
         Canvas.redraw();
-        Canvas.updateSelectedShapeEditors();
     }
 
     // ========================================================================
