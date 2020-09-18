@@ -72,6 +72,10 @@ export class CanvasElement extends LitElement {
     (window as any).canvas = this._canvas;
   }
 
+  public disconnectedCallback() {
+    Canvas.destroy();
+  }
+
   public render() {
     return html`
       <div class="graphics-editor">

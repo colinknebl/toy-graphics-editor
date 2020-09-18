@@ -80,6 +80,11 @@ export class Canvas {
   }
 
   // ========================================================================
+  public static destroy(): void {
+    Canvas._instance?.destroy();
+  }
+
+  // ========================================================================
   #el!: HTMLCanvasElement;
   #canvasCustomEl!: CanvasElement;
   #shapeEntries: Map<number, Shape> = new Map();
@@ -173,7 +178,7 @@ export class Canvas {
   }
 
   // ========================================================================
-  public cleanup(): void {
+  public destroy(): void {
     this.#el.removeEventListener('mousemove', this._onMouseMove);
     this.#el.removeEventListener('mousedown', this._onMouseDown);
     this.#el.removeEventListener('mouseup', this._onMouseUp);
