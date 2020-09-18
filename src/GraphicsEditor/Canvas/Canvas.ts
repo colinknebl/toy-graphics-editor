@@ -50,7 +50,7 @@ export class Canvas {
     const canvas = Canvas._instance;
     if (!canvas) return;
     canvas.#shapeEntries.delete(shapeId);
-    Canvas.redraw();
+    Canvas.draw();
   }
 
   // ========================================================================
@@ -58,11 +58,11 @@ export class Canvas {
     const canvas = Canvas._instance;
     if (!canvas) return;
     canvas.#shapeEntries.set(shape.id, shape);
-    Canvas.redraw();
+    Canvas.draw();
   }
 
   // ========================================================================
-  public static redraw(): void {
+  public static draw(): void {
     if (!Canvas._instance) return;
     // clear the canvas
     Canvas._instance.ctx.clearRect(0, 0, Canvas.height, Canvas.width);

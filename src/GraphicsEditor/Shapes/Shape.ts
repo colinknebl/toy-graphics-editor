@@ -14,13 +14,13 @@ export abstract class Shape {
   // ========================================================================
   public static setWidth(shape: Shape, width: number): void {
     shape.#width = width;
-    Shape.Canvas.redraw();
+    Shape.Canvas.draw();
   }
 
   // ========================================================================
   public static setHeight(shape: Shape, height: number): void {
     shape.#height = height;
-    Shape.Canvas.redraw();
+    Shape.Canvas.draw();
   }
 
   // ========================================================================
@@ -40,13 +40,13 @@ export abstract class Shape {
   // ========================================================================
   public static unselect(shape: Shape): void {
     shape.#isSelected = false;
-    Shape.Canvas.redraw();
+    Shape.Canvas.draw();
   }
 
   // ========================================================================
   public static unhover(shape: Shape): void {
     shape.#isHoveredOver = false;
-    Shape.Canvas.redraw();
+    Shape.Canvas.draw();
   }
 
   // ========================================================================

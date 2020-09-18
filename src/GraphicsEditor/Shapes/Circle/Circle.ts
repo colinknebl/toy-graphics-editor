@@ -8,7 +8,7 @@ export class Circle extends Shape {
   // ========================================================================
   public static setRadius(circle: Circle, radius: number): void {
     circle.#radius = radius;
-    Shape.Canvas.redraw();
+    Shape.Canvas.draw();
   }
 
   // ========================================================================
