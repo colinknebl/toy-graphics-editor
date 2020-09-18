@@ -125,10 +125,11 @@ export class Canvas {
 
     let oneIsSelected = false;
     this._shapesArray.reverse().map((shape) => {
-      if (shape.isPointOver(event.clientX, event.clientY) && !oneIsSelected) {
+      const isPointerOver = shape.isPointOver(event.clientX, event.clientY);
+      if (isPointerOver && !shape.isSelected && !oneIsSelected) {
         Shape.select(shape);
         oneIsSelected = true;
-      } else if (!event.shiftKey) {
+      } else if (!event.shiftKey || isPointerOver && shape.isSelected) {
         Shape.unselect(shape);
       }
     });
