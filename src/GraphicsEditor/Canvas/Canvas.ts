@@ -1,187 +1,185 @@
-import type { CanvasElement } from "../graphics-editor";
-import { Circle } from "../Shapes/Circle/Circle";
-import { Rectangle } from "../Shapes/Rectangle/Rectangle";
-import { Shape, ShapeType } from "../Shapes/Shape";
+import type { CanvasElement } from '../graphics-editor';
+import { Circle } from '../Shapes/Circle/Circle';
+import { Rectangle } from '../Shapes/Rectangle/Rectangle';
+import { Shape, ShapeType } from '../Shapes/Shape';
 
 export class Canvas {
+  // ========================================================================
+  private static _instance?: Canvas;
 
-    // ========================================================================
-    private static _instance?: Canvas;
+  // ========================================================================
+  public static getBoundingClientRect(): DOMRect {
+    return Canvas._instance?.el.getBoundingClientRect() ?? new DOMRect();
+  }
 
-    // ========================================================================
-    public static getBoundingClientRect(): DOMRect {
-        return Canvas._instance?.el.getBoundingClientRect() ?? new DOMRect();
+  // ========================================================================
+  public static get height(): number {
+    return Canvas._instance?.el.height ?? 0;
+  }
+
+  // ========================================================================
+  public static get width(): number {
+    return Canvas._instance?.el.width ?? 0;
+  }
+
+  // ========================================================================
+  public static fillShape(type: ShapeType): Shape {
+    if (!Canvas._instance)
+      throw new Error('Cannot write shape to canvas - canvas undefined!');
+    let shape: Shape;
+    if (type === ShapeType.circle) {
+      shape = new Circle();
+    } else if (type === ShapeType.rectangle) {
+      shape = new Rectangle();
+    } else {
+      throw new Error('Unsupported shape type');
     }
 
-    // ========================================================================
-    public static get height(): number {
-        return Canvas._instance?.el.height ?? 0;
+    Canvas._instance.#shapeEntries.set(shape.id, shape);
+    Shape.draw(shape);
+    return shape;
+  }
+
+  // ========================================================================
+  public static get ctx(): CanvasRenderingContext2D {
+    return Canvas._instance?.ctx as CanvasRenderingContext2D;
+  }
+
+  // ========================================================================
+  public static eraseShape(shapeId: number): void {
+    const canvas = Canvas._instance;
+    if (!canvas) return;
+    canvas.#shapeEntries.delete(shapeId);
+    Canvas.redraw();
+  }
+
+  // ========================================================================
+  public static moveShape(shape: Shape): void {
+    const canvas = Canvas._instance;
+    if (!canvas) return;
+    canvas.#shapeEntries.set(shape.id, shape);
+    Canvas.redraw();
+  }
+
+  // ========================================================================
+  public static redraw(): void {
+    if (!Canvas._instance) return;
+    // clear the canvas
+    Canvas._instance.ctx.clearRect(0, 0, Canvas.height, Canvas.width);
+
+    for (let shape of Canvas._instance._shapesArray) {
+      Shape.draw(shape);
+    }
+    Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
+  }
+
+  // ========================================================================
+  public static updateSelectedShapeEditors(): void {
+    if (!Canvas._instance) return;
+    Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
+  }
+
+  // ========================================================================
+  #el!: HTMLCanvasElement;
+  #canvasCustomEl!: CanvasElement;
+  #shapeEntries: Map<number, Shape> = new Map();
+  #isMouseDown: boolean = false;
+
+  // ========================================================================
+  public constructor(canvas?: CanvasElement, element?: HTMLCanvasElement) {
+    if (Canvas._instance) {
+      return Canvas._instance;
+    } else {
+      Canvas._instance = this;
     }
 
-    // ========================================================================
-    public static get width(): number {
-        return Canvas._instance?.el.width ?? 0;
-    }
+    Shape.Canvas = Canvas;
 
-    // ========================================================================
-    public static fillShape(type: ShapeType): Shape {
-        if (!Canvas._instance) throw new Error('Cannot write shape to canvas - canvas undefined!');
-        let shape: Shape;
-        if (type === ShapeType.circle) {
-            shape = new Circle();
-        } else if (type === ShapeType.rectangle) {
-            shape = new Rectangle();
-        } else {
-            throw new Error('Unsupported shape type');
-        }
+    if (!element) throw 'Element not provided';
+    if (!canvas) throw 'Canvas not provided';
 
-        Canvas._instance.#shapeEntries.set(shape.id, shape);
-        Shape.draw(shape);
-        return shape;
-    }
+    this.#canvasCustomEl = canvas;
+    this.#el = element;
+    this.#el.addEventListener('mousemove', this._onMouseMove);
+    this.#el.addEventListener('mousedown', this._onMouseDown);
+    this.#el.addEventListener('mouseup', this._onMouseUp);
+  }
 
-    // ========================================================================
-    public static get ctx(): CanvasRenderingContext2D {
-        return Canvas._instance?.ctx as CanvasRenderingContext2D;
-    }
+  // ========================================================================
+  private _onMouseUp = (event: MouseEvent): void => {
+    this.#isMouseDown = false;
 
-    // ========================================================================
-    public static eraseShape(shapeId: number): void {
-        const canvas = Canvas._instance;
-        if (!canvas) return;
-        canvas.#shapeEntries.delete(shapeId);
-        Canvas.redraw();
-    }
+    this._shapesArray.reverse().map((shape) => {
+      Shape.endDrag(shape);
+    });
+  };
 
-    // ========================================================================
-    public static moveShape(shape: Shape): void {
-        const canvas = Canvas._instance;
-        if (!canvas) return;
-        canvas.#shapeEntries.set(shape.id, shape);
-        Canvas.redraw();
-    }
+  // ========================================================================
+  private get _shapesArray(): Shape[] {
+    return Array.from(this.#shapeEntries.values());
+  }
 
-    // ========================================================================
-    public static redraw(): void {
-        if (!Canvas._instance) return;
-        // clear the canvas
-        Canvas._instance.ctx.clearRect(0, 0, Canvas.height, Canvas.width);
+  // ========================================================================
+  private _onMouseDown = (event: MouseEvent): void => {
+    this.#isMouseDown = true;
 
-        for (let shape of Canvas._instance._shapesArray) {
-            Shape.draw(shape);
-        }
-        Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
-    }
+    let oneIsSelected = false;
+    this._shapesArray.reverse().map((shape) => {
+      if (shape.isPointOver(event.clientX, event.clientY) && !oneIsSelected) {
+        Shape.select(shape);
+        oneIsSelected = true;
+      } else if (!event.shiftKey) {
+        Shape.unselect(shape);
+      }
+    });
 
-    // ========================================================================
-    public static updateSelectedShapeEditors(): void {
-        if (!Canvas._instance) return;
-        Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
-    }
+    Canvas.updateSelectedShapeEditors();
+  };
 
-    // ========================================================================
-    #el!: HTMLCanvasElement;
-    #canvasCustomEl!: CanvasElement;
-    #shapeEntries: Map<number, Shape> = new Map();
-    #isMouseDown: boolean = false;
+  // ========================================================================
+  private _onMouseMove = (event: MouseEvent): void => {
+    let oneIsHovered = false;
 
-    // ========================================================================
-    public constructor(canvas?: CanvasElement, element?: HTMLCanvasElement) {      
-        if (Canvas._instance) {
-            return Canvas._instance;
-        } else {
-            Canvas._instance = this;
-        }
+    this._shapesArray.reverse().map((shape) => {
+      // if the mouse is over the shape, hover
+      if (!oneIsHovered && shape.isPointOver(event.clientX, event.clientY)) {
+        Shape.hover(shape);
+        oneIsHovered = true;
+      } else {
+        Shape.unhover(shape);
+      }
 
-        Shape.Canvas = Canvas;
+      // if the mouse is selected, handleMouseMoveEvent
+      if (this.#isMouseDown && shape.isSelected) {
+        shape.handleMoveEvent(event);
+      }
+    });
+  };
 
-        if (!element) throw 'Element not provided';
-        if (!canvas) throw 'Canvas not provided';
+  // ========================================================================
+  public get ctx(): CanvasRenderingContext2D {
+    return this.#el.getContext('2d') as CanvasRenderingContext2D;
+  }
 
-        this.#canvasCustomEl = canvas;
-        this.#el = element;
-        this.#el.addEventListener('mousemove', this._onMouseMove);
-        this.#el.addEventListener('mousedown', this._onMouseDown);
-        this.#el.addEventListener('mouseup', this._onMouseUp);   
-    }
+  // ========================================================================
+  public get el(): HTMLCanvasElement {
+    return this.#el;
+  }
 
-    // ========================================================================
-    private _onMouseUp = (event: MouseEvent): void => {
-        this.#isMouseDown = false;
+  // ========================================================================
+  public get shapes() {
+    return this.#shapeEntries;
+  }
 
-        this._shapesArray.reverse().map(shape => {
-            Shape.endDrag(shape);
-        });
-    }
+  // ========================================================================
+  public getShapeById(shapeId: number): Shape | undefined {
+    return this.#shapeEntries.get(shapeId);
+  }
 
-    // ========================================================================
-    private get _shapesArray(): Shape[] {
-        return Array.from(this.#shapeEntries.values());
-    }
-
-    // ========================================================================
-    private _onMouseDown = (event: MouseEvent): void => {
-        this.#isMouseDown = true;
-
-        let oneIsSelected = false;
-        this._shapesArray.reverse().map(shape => {
-
-            if (shape.isPointOver(event.clientX, event.clientY) && !oneIsSelected) {
-                Shape.select(shape);
-                oneIsSelected = true;
-            } else if (!event.shiftKey) {
-                Shape.unselect(shape);
-            }
-        });
-
-        Canvas.updateSelectedShapeEditors();
-    }
-
-    // ========================================================================
-    private _onMouseMove = (event: MouseEvent): void => {
-        let oneIsHovered = false;
-
-        this._shapesArray.reverse().map(shape => {
-                
-            // if the mouse is over the shape, hover
-            if (!oneIsHovered && shape.isPointOver(event.clientX, event.clientY)) {
-                Shape.hover(shape)
-                oneIsHovered = true;
-            } else {
-                Shape.unhover(shape);
-            }
-            
-            // if the mouse is selected, handleMouseMoveEvent
-            if (this.#isMouseDown && shape.isSelected) {
-                shape.handleMoveEvent(event);
-            }
-        });
-    }
-
-    // ========================================================================
-    public get ctx(): CanvasRenderingContext2D {
-        return this.#el.getContext('2d') as CanvasRenderingContext2D;
-    }
-
-    // ========================================================================
-    public get el(): HTMLCanvasElement {
-        return this.#el;
-    }
-
-    // ========================================================================
-    public get shapes() {
-        return this.#shapeEntries;
-    }
-
-    // ========================================================================
-    public getShapeById(shapeId: number): Shape | undefined {
-        return this.#shapeEntries.get(shapeId);
-    }
-
-    // ========================================================================
-    public cleanup(): void {
-        this.#el.removeEventListener('mousemove', this._onMouseMove);
-        this.#el.removeEventListener('mousedown', this._onMouseDown);
-        this.#el.removeEventListener('mouseup', this._onMouseUp);
-    }
+  // ========================================================================
+  public cleanup(): void {
+    this.#el.removeEventListener('mousemove', this._onMouseMove);
+    this.#el.removeEventListener('mousedown', this._onMouseDown);
+    this.#el.removeEventListener('mouseup', this._onMouseUp);
+  }
 }
