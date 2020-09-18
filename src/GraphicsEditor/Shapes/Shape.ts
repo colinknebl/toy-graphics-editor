@@ -23,6 +23,7 @@ export abstract class Shape {
         Shape.Canvas.redraw();
     }
 
+    // ========================================================================
     public static setColor(shape: Shape, color: string): void {
         shape.#color = color;
         Shape.draw(shape);
@@ -38,7 +39,7 @@ export abstract class Shape {
 
     // ========================================================================
     public static unselect(shape: Shape): void {
-        shape.unselect();
+        shape.#isSelected = false;
         Shape.Canvas.redraw();
     }
 
@@ -56,8 +57,6 @@ export abstract class Shape {
     }
 
     // ========================================================================
-
-    // ========================================================================
     public static endDrag(shape: Shape): void {
         shape.#draggingEvent = undefined;
     }
@@ -67,6 +66,7 @@ export abstract class Shape {
         Shape.Canvas.eraseShape(shape.id);
     }
 
+    // ========================================================================
     public static draw(shape: Shape): Shape {
         shape.draw();
 
@@ -132,43 +132,8 @@ export abstract class Shape {
     }
 
     // ========================================================================
-    public get isDragging(): boolean {
-        return Boolean(this.#draggingEvent);
-    }
-
-    // ========================================================================
-    public get isSelected(): boolean {
-        return this.#isSelected;
-    }
-
-    // ========================================================================
-    public get isHoveredOver(): boolean {
-        return this.#isHoveredOver;
-    }
-
-    // ========================================================================
-    public handleMoveEvent(event: MouseEvent): void {
-        if (!this.#draggingEvent) {
-            this.#draggingEvent = new DraggingEvent(event, this, Shape.Canvas);
-            return;
-        } else {
-            this.#draggingEvent.setLastEvent(event);
-        }
-
-        this.#x = this.#draggingEvent?.nextPosition?.x as number;
-        this.#y = this.#draggingEvent?.nextPosition?.y as number;
-        Shape.Canvas.moveShape(this);
-    }
-
-    // ========================================================================
     protected get _shouldHover(): boolean {
         return !this.#isHoveredOver;
-    }
-
-    // ========================================================================
-    public unselect(): void {
-        this.#isSelected = false;
-        Shape.Canvas.redraw();
     }
 
     // ========================================================================
@@ -210,6 +175,35 @@ export abstract class Shape {
         const centerX = this.x + (this.width / 2);
         const centerY = this.y + (this.height / 2);
         return new Position(centerX, centerY);
+    }
+    
+    // ========================================================================
+    public get isDragging(): boolean {
+        return Boolean(this.#draggingEvent);
+    }
+
+    // ========================================================================
+    public get isSelected(): boolean {
+        return this.#isSelected;
+    }
+
+    // ========================================================================
+    public get isHoveredOver(): boolean {
+        return this.#isHoveredOver;
+    }
+
+    // ========================================================================
+    public handleMoveEvent(event: MouseEvent): void {
+        if (!this.#draggingEvent) {
+            this.#draggingEvent = new DraggingEvent(event, this, Shape.Canvas);
+            return;
+        } else {
+            this.#draggingEvent.setLastEvent(event);
+        }
+
+        this.#x = this.#draggingEvent?.nextPosition?.x as number;
+        this.#y = this.#draggingEvent?.nextPosition?.y as number;
+        Shape.Canvas.moveShape(this);
     }
 }
 
