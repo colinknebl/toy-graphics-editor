@@ -124,6 +124,7 @@ export abstract class Shape {
     protected abstract draw(): Shape;
     protected abstract hover(): void;
     protected abstract select(): void;
+    public abstract isPointOver(x: number, y: number): boolean;
     
     // ========================================================================
     protected get _ctx() {
@@ -162,12 +163,6 @@ export abstract class Shape {
     // ========================================================================
     protected get _shouldHover(): boolean {
         return !this.#isHoveredOver;
-    }
-
-    // ========================================================================
-    protected abstract _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean;
-    public isPointOver(x: number, y: number): boolean {
-        return this._isPointOver(x, y, Shape.Canvas.getBoundingClientRect());;
     }
 
     // ========================================================================

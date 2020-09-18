@@ -39,15 +39,6 @@ export class Circle extends Shape {
     }
 
     // ========================================================================
-    protected _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean {
-        const centerX = this.center.x + boundingRect.left;
-        const centerY = this.center.y + boundingRect.top;
-        const deltaX = Math.pow(x - centerX, 2);
-        const deltaY = Math.pow(y - centerY, 2);
-        return Math.sqrt(deltaX + deltaY) <= this.radius;
-    }
-
-    // ========================================================================
     protected draw(): Shape {
         this._ctx.beginPath();
         const x = this.x + Circle._offset;
@@ -58,6 +49,15 @@ export class Circle extends Shape {
         this._ctx.closePath();
     
         return this;
+    }
+
+    // ========================================================================
+    public isPointOver(x: number, y: number, canvasRect = Shape.Canvas.getBoundingClientRect()): boolean {
+        const centerX = this.center.x + canvasRect.left;
+        const centerY = this.center.y + canvasRect.top;
+        const deltaX = Math.pow(x - centerX, 2);
+        const deltaY = Math.pow(y - centerY, 2);
+        return Math.sqrt(deltaX + deltaY) <= this.radius;
     }
 
     // ========================================================================

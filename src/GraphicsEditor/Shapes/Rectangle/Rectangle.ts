@@ -22,10 +22,17 @@ export class Rectangle extends Shape {
     }
 
     // ========================================================================
-    protected _isPointOver(x: number, y: number, boundingRect: DOMRect) {
-        const shapeLeftEdge = this.x + boundingRect.left;
+    protected draw(): Shape {
+        this._ctx.fillStyle = this.color;
+        this._ctx.fillRect(this.x, this.y, this.width, this.height);
+        return this;
+    }
+
+    // ========================================================================
+    public isPointOver(x: number, y: number, canvasRect = Shape.Canvas.getBoundingClientRect()): boolean {
+        const shapeLeftEdge = this.x + canvasRect.left;
         const shapeRightEdge = shapeLeftEdge + this.width;
-        const shapeTopEdge = this.y + boundingRect.top;
+        const shapeTopEdge = this.y + canvasRect.top;
         const shapeBottomEdge = shapeTopEdge + this.height;
 
         if (x > shapeLeftEdge && x < shapeRightEdge &&
@@ -33,12 +40,5 @@ export class Rectangle extends Shape {
             return true;
         }
         return false;
-    }
-
-    // ========================================================================
-    protected draw(): Shape {
-        this._ctx.fillStyle = this.color;
-        this._ctx.fillRect(this.x, this.y, this.width, this.height);
-        return this;
     }
 }
