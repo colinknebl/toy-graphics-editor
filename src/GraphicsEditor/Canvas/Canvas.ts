@@ -140,10 +140,10 @@ export class Canvas {
                 
             // if the mouse is over the shape, hover
             if (!oneIsHovered && shape.isPointOver(event.clientX, event.clientY)) {
-                shape.hover();
+                Shape.hover(shape)
                 oneIsHovered = true;
             } else {
-                shape.unhover();
+                Shape.unhover(shape);
             }
             
             // if the mouse is selected, handleMouseMoveEvent

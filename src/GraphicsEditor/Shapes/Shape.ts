@@ -39,6 +39,17 @@ export abstract class Shape {
         Shape.Canvas.redraw();
     }
 
+    // ========================================================================
+    public static unhover(shape: Shape): void {
+        shape.unhover();
+    }
+
+    // ========================================================================
+    public static hover(shape: Shape): void {
+        shape.hover();
+    }
+
+    // ========================================================================
     public static endDrag(shape: Shape): void {
         shape.#draggingEvent = undefined;
     }
@@ -141,7 +152,7 @@ export abstract class Shape {
     // ========================================================================
     // ========================================================================
     protected abstract _hover(): void;
-    public hover(): void {
+    private hover(): void {
         this.#isHoveredOver = true;
         if (this.#isHoverOutlineApplied) return;
         this._ctx.lineWidth = Shape.outline.size;
@@ -151,7 +162,7 @@ export abstract class Shape {
     }
 
     // ========================================================================
-    public unhover(): void {
+    private unhover(): void {
         this.#isHoveredOver = false;
         this.#isHoverOutlineApplied = false;
         Shape.Canvas.redraw();
