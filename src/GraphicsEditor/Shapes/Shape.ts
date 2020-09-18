@@ -25,7 +25,7 @@ export abstract class Shape {
 
     public static setColor(shape: Shape, color: string): void {
         shape.#color = color;
-        shape.draw();
+        Shape.draw(shape);
     }
 
     // ========================================================================
@@ -60,6 +60,20 @@ export abstract class Shape {
     // ========================================================================
     public static erase(shape: Shape): void {
         Shape.Canvas.eraseShape(shape.id);
+    }
+
+    public static draw(shape: Shape): Shape {
+        shape.draw();
+
+        if (shape.isHoveredOver) {
+            shape.hover();
+        }
+
+        if (shape.#isSelected) {
+            shape.select();
+        }
+
+        return shape;
     }
 
     // ========================================================================
@@ -100,6 +114,10 @@ export abstract class Shape {
         this.#width = options?.width ?? 0;
         this.#id = Shape._getId();
     }
+
+    // ========================================================================
+    protected abstract draw(): Shape;
+    protected abstract hover(): void;
     
     // ========================================================================
     protected get _ctx() {
@@ -122,22 +140,6 @@ export abstract class Shape {
     }
 
     // ========================================================================
-    protected abstract _draw(): Shape;
-    public draw(): Shape {
-        this._draw();
-
-        if (this.isHoveredOver) {
-            this.hover();
-        }
-
-        if (this.#isSelected) {
-            this.select();
-        }
-
-        return this;
-    }
-
-    // ========================================================================
     public handleMoveEvent(event: MouseEvent): void {
         if (!this.#draggingEvent) {
             this.#draggingEvent = new DraggingEvent(event, this, Shape.Canvas);
@@ -155,9 +157,6 @@ export abstract class Shape {
     protected get _shouldHover(): boolean {
         return !this.#isHoveredOver;
     }
-
-    // ========================================================================
-    protected abstract hover(): void;
 
     // ========================================================================
     protected abstract _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean;

@@ -24,14 +24,20 @@ export class Canvas {
     }
 
     // ========================================================================
-    public static initShape(type: ShapeType): Shape {
+    public static fillShape(type: ShapeType): Shape {
+        if (!Canvas._instance) throw new Error('Cannot write shape to canvas - canvas undefined!');
+        let shape: Shape;
         if (type === ShapeType.circle) {
-            return new Circle();
+            shape = new Circle();
         } else if (type === ShapeType.rectangle) {
-            return new Rectangle();
+            shape = new Rectangle();
         } else {
             throw new Error('Unsupported shape type');
         }
+
+        Canvas._instance.#shapeEntries.set(shape.id, shape);
+        Shape.draw(shape);
+        return shape;
     }
 
     // ========================================================================
@@ -62,7 +68,7 @@ export class Canvas {
         Canvas._instance.ctx.clearRect(0, 0, Canvas.height, Canvas.width);
 
         for (let shape of Canvas._instance._shapesArray) {
-            shape.draw();
+            Shape.draw(shape);
         }
         Canvas._instance.#canvasCustomEl.shapes = Canvas._instance._shapesArray;
     }
@@ -165,17 +171,6 @@ export class Canvas {
     // ========================================================================
     public get shapes() {
         return this.#shapeEntries;
-    }
-
-    // ========================================================================
-    public drawShape(shape: Shape): Shape {
-        shape.draw();
-        this.ctx.fillStyle = '#000000';
-
-        this.#shapeEntries.set(shape.id, shape);
-
-        (window as any).lastShape = shape;
-        return shape;
     }
 
     // ========================================================================

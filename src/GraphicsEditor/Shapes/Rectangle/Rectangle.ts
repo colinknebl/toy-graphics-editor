@@ -36,7 +36,7 @@ export class Rectangle extends Shape {
     }
 
     // ========================================================================
-    protected _draw(): Shape {
+    protected draw(): Shape {
         this._ctx.fillStyle = this.color;
         this._ctx.fillRect(this.x, this.y, this.width, this.height);
         return this;

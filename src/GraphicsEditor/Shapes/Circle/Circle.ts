@@ -48,7 +48,7 @@ export class Circle extends Shape {
     }
 
     // ========================================================================
-    protected _draw(): Shape {
+    protected draw(): Shape {
         this._ctx.beginPath();
         const x = this.x + Circle._offset;
         const y = this.y + Circle._offset;
