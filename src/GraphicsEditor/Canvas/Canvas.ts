@@ -173,11 +173,6 @@ export class Canvas {
   }
 
   // ========================================================================
-  public getShapeById(shapeId: number): Shape | undefined {
-    return this.#shapeEntries.get(shapeId);
-  }
-
-  // ========================================================================
   public cleanup(): void {
     this.#el.removeEventListener('mousemove', this._onMouseMove);
     this.#el.removeEventListener('mousedown', this._onMouseDown);
