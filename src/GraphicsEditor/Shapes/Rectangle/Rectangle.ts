@@ -16,7 +16,7 @@ export class Rectangle extends Shape {
     }
 
     // ========================================================================
-    protected _select(): void {
+    protected select(): void {
         const size = Shape.outline.size + 1;
         this._ctx.strokeRect(this.x - size * 2, this.y - size * 2, this.width + size * 4, this.height + size * 4);
     }

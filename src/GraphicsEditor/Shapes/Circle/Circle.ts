@@ -29,7 +29,7 @@ export class Circle extends Shape {
     }
 
     // ========================================================================
-    protected _select(): void {
+    protected select(): void {
         this._ctx.beginPath();
         const x = this.x + Circle._offset;
         const y = this.y + Circle._offset;

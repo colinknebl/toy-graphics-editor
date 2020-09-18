@@ -30,6 +30,9 @@ export abstract class Shape {
 
     // ========================================================================
     public static select(shape: Shape): void {
+        shape.#isSelected = true;
+        shape._ctx.lineWidth = Shape.outline.size;
+        shape._ctx.strokeStyle = Shape.outline.select.color;
         shape.select();
     }
 
@@ -53,6 +56,8 @@ export abstract class Shape {
     }
 
     // ========================================================================
+
+    // ========================================================================
     public static endDrag(shape: Shape): void {
         shape.#draggingEvent = undefined;
     }
@@ -65,12 +70,12 @@ export abstract class Shape {
     public static draw(shape: Shape): Shape {
         shape.draw();
 
-        if (shape.isHoveredOver) {
+        if (shape.#isHoveredOver) {
             shape.hover();
         }
 
         if (shape.#isSelected) {
-            shape.select();
+            Shape.select(shape);
         }
 
         return shape;
@@ -118,6 +123,7 @@ export abstract class Shape {
     // ========================================================================
     protected abstract draw(): Shape;
     protected abstract hover(): void;
+    protected abstract select(): void;
     
     // ========================================================================
     protected get _ctx() {
@@ -162,15 +168,6 @@ export abstract class Shape {
     protected abstract _isPointOver(x: number, y: number, boundingRect: DOMRect): boolean;
     public isPointOver(x: number, y: number): boolean {
         return this._isPointOver(x, y, Shape.Canvas.getBoundingClientRect());;
-    }
-
-    // ========================================================================
-    protected abstract _select(): void;
-    public select(): void {
-        this.#isSelected = true;
-        this._ctx.lineWidth = Shape.outline.size;
-        this._ctx.strokeStyle = Shape.outline.select.color;
-        this._select();
     }
 
     // ========================================================================
